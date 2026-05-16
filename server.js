@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
 
 app.use(cors({
-  origin: [CLIENT_URL, 'http://localhost:5173', 'http://localhost:5174',  'https://project-marketivo.vercel.app'],
+  origin: [CLIENT_URL, 'http://localhost:5173', 'http://localhost:5174', 'https://marketivo-frontend.vercel.app', 'https://project-marketivo.vercel.app'],
   credentials: true,
 }))
 app.use(express.json())
