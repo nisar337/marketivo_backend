@@ -2,10 +2,10 @@ import 'dotenv/config'
 import cors from 'cors'
 import express from 'express'
 
-import app from './app.js'
 import connectDB from './config/db.js'
 import apiRouter from './routes/index.js'
 
+const app = express()
 const PORT = process.env.PORT || 5000
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
 
