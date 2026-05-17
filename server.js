@@ -35,6 +35,10 @@ app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
 app.use(express.json())
 
+app.get('/', (_req, res) => {
+  res.json({ message: 'Marketivo Backend API', health: 'ok' })
+})
+
 app.get('/ping', (_req, res) => {
   res.json({ message: 'pong' })
 })
