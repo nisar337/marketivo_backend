@@ -58,14 +58,35 @@ export const register = async (req, res, next) => {
 
     if (userRole === 'vendor') {
       const { storeName, description } = req.body
+      let { lat, lng } = req.body
+      lat = typeof lat === 'string' ? parseFloat(lat) : lat
+      lng = typeof lng === 'string' ? parseFloat(lng) : lng
+
       if (!storeName) {
         await User.findByIdAndDelete(user._id)
         return res.status(400).json({ message: 'Store name is required for vendor registration.' })
       }
+      if (!isValidLatLng(lat, lng)) {
+        await User.findByIdAndDelete(user._id)
+        return res.status(400).json({
+          message: 'GPS location is required for vendor registration. Please share your location.',
+        })
+      }
+
+      let label = ''
+      try {
+        label = await reverseGeocodeLabel(lat, lng)
+      } catch {
+        label = `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+      }
+
       await Vendor.create({
         userId: user._id,
         storeName,
         description: description || '',
+        lat,
+        lng,
+        location: label,
       })
     }
 

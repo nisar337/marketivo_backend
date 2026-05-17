@@ -43,6 +43,19 @@ export const updateShopStatus = async (req, res, next) => {
       return res.status(404).json({ message: 'Shop not found.' })
     }
 
+    if (status === 'approved') {
+      const hasGps =
+        typeof vendor.lat === 'number' &&
+        typeof vendor.lng === 'number' &&
+        Number.isFinite(vendor.lat) &&
+        Number.isFinite(vendor.lng)
+      if (!hasGps) {
+        return res.status(400).json({
+          message: 'Cannot approve vendor without a GPS location. Ask the vendor to set their location.',
+        })
+      }
+    }
+
     vendor.status = status
     await vendor.save()
 

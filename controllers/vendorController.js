@@ -40,7 +40,7 @@ export const getNearbyVendors = async (req, res, next) => {
 export const getAllVendors = async (req, res, next) => {
   try {
     const vendors = await Vendor.find({ status: 'approved' })
-      .select('storeName description phone website businessAddress logo status userId')
+      .select('storeName description phone website businessAddress logo status userId lat lng')
       .sort({ createdAt: -1 })
 
     res.json({ vendors })
@@ -52,7 +52,7 @@ export const getAllVendors = async (req, res, next) => {
 export const getVendorById = async (req, res, next) => {
   try {
     const vendor = await Vendor.findOne({ userId: req.params.id, status: 'approved' })
-      .select('storeName description phone website businessAddress logo status userId')
+      .select('storeName description phone website businessAddress logo status userId lat lng')
 
     if (!vendor) {
       return res.status(404).json({ message: 'Vendor not found.' })
