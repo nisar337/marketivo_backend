@@ -1,19 +1,21 @@
 import 'dotenv/config'
 import cors from 'cors'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 
 import connectDB from './config/db.js'
 import apiRouter from './routes/index.js'
 
 const app = express()
 const PORT = process.env.PORT || 5000
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
+const CLIENT_URL = process.env.FRONTEND_ORIGIN || process.env.CLIENT_URL || 'http://localhost:5173'
 
 app.use(cors({
   origin: [CLIENT_URL, 'http://localhost:5173', 'http://localhost:5174', 'https://marketivo-frontend.vercel.app', 'https://project-marketivo.vercel.app'],
   credentials: true,
 }))
 app.use(express.json())
+app.use(cookieParser())
 
 app.get('/ping', (_req, res) => {
   res.json({ message: 'pong' })

@@ -47,6 +47,7 @@ export const createOrder = async (req, res, next) => {
       })
 
       product.stockQuantity -= item.quantity
+      product.soldCount = Math.max(0, (product.soldCount || 0) + item.quantity)
       await product.save()
     }
 

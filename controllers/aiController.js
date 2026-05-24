@@ -71,7 +71,7 @@ const cleanContent = (content) => {
 export const chat = async (req, res, next) => {
   try {
     const { message } = req.body
-    const userId = req.user._id
+    const userId = req.user?._id || null
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json({ message: 'Message is required' })
@@ -91,22 +91,23 @@ export const chat = async (req, res, next) => {
     const [products, categories, session] = await Promise.all([
       productsPromise,
       Category.find().select('name slug').lean(),
-      ChatSession.findOne({ userId }),
+      userId ? ChatSession.findOne({ userId }) : Promise.resolve(null),
     ])
 
     let chatSession = session
-    if (!chatSession) {
-      chatSession = new ChatSession({ userId, messages: [] })
+    if (userId) {
+      if (!chatSession) {
+        chatSession = new ChatSession({ userId, messages: [] })
+      }
+      chatSession.messages.push({ role: 'user', content: message.trim() })
     }
-
-    chatSession.messages.push({ role: 'user', content: message.trim() })
 
     const systemPrompt = buildSystemPrompt(products, categories)
 
-    const recentMessages = chatSession.messages.slice(-10)
-    const conversationContext = recentMessages
-      .map((m) => `${m.role === 'user' ? 'Customer' : 'Assistant'}: ${m.content}`)
-      .join('\n')
+    const recentMessages = chatSession?.messages?.slice(-10) || []
+    const conversationContext = recentMessages.length
+      ? recentMessages.map((m) => `${m.role === 'user' ? 'Customer' : 'Assistant'}: ${m.content}`).join('\n')
+      : `Customer: ${message.trim()}`
 
     const fullPrompt = `${systemPrompt}\n\nConversation so far:\n${conversationContext}`
 
@@ -119,13 +120,15 @@ export const chat = async (req, res, next) => {
     const quickLinks = parseQuickLinks(assistantContent, products, categories)
     const cleanedContent = cleanContent(assistantContent)
 
-    chatSession.messages.push({
-      role: 'assistant',
-      content: cleanedContent,
-      quickLinks,
-    })
+    if (userId) {
+      chatSession.messages.push({
+        role: 'assistant',
+        content: cleanedContent,
+        quickLinks,
+      })
 
-    await chatSession.save()
+      await chatSession.save()
+    }
 
     res.json({
       message: cleanedContent,
@@ -145,7 +148,10 @@ export const chat = async (req, res, next) => {
 
 export const getHistory = async (req, res, next) => {
   try {
-    const userId = req.user._id
+    const userId = req.user?._id
+    if (!userId) {
+      return res.json({ messages: [] })
+    }
     const session = await ChatSession.findOne({ userId }).lean()
 
     if (!session) {
@@ -167,7 +173,10 @@ export const getHistory = async (req, res, next) => {
 
 export const clearHistory = async (req, res, next) => {
   try {
-    const userId = req.user._id
+    const userId = req.user?._id
+    if (!userId) {
+      return res.json({ message: 'No chat history for guests.' })
+    }
     await ChatSession.findOneAndDelete({ userId })
     res.json({ message: 'Chat history cleared' })
   } catch (error) {

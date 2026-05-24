@@ -41,6 +41,8 @@ const chatSessionSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+chatSessionSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 300 })
+
 const ChatSession = mongoose.model('ChatSession', chatSessionSchema)
 
 export default ChatSession
